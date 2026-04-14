@@ -1,0 +1,134 @@
+:root {
+  font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  margin: 0;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+header {
+  padding: 14px 18px;
+  background: #0f172a;
+  color: #e2e8f0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.meta {
+  font-size: 0.9rem;
+  opacity: 0.95;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.toolbar label {
+  font-weight: 600;
+}
+
+.toolbar select {
+  border: 1px solid #334155;
+  background: #0b1220;
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+}
+
+.header-right {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+#map {
+  height: calc(100vh - 56px);
+  width: 100%;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.popup-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.popup-grid {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 8px;
+  font-size: 0.9rem;
+}
+
+.popup-grid dt {
+  color: #334155;
+  font-weight: 600;
+}
+
+.popup-grid dd {
+  margin: 0;
+  color: #0f172a;
+}
+
+/* Town Layer Styling */
+.town-label {
+  background: rgba(255, 255, 255, 0.7);
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+  text-shadow: 1px 1px 2px white;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.town-label-marker {
+  background: none;
+  border: none;
+}
+
+/* Layer Control */
+.leaflet-control-layers {
+  background: white;
+  border-radius: 6px;
+}
+
+.leaflet-control-layers-overlays label {
+  display: block;
+  margin-top: 5px;
+}
