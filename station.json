@@ -754,6 +754,66 @@
 			"county": "桃園市",
 			"district": "復興區",
 			"sourceUrl": "https://gweb.wra.gov.tw/HydroInfo/StDataInfo/StDataInfo?RA&21C140"
+		},
+		{
+			"stationName": "大艽芎古道",
+			"stationId": "81C700",
+			"longitude": 121.288596,
+			"latitude": 24.825009,
+			"elevation": 267.0,
+			"agency": "ARDSWC",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "大溪區",
+			"sourceUrl": "https://246.ardswc.gov.tw/Monitoring/RainGraph/81C700"
+		},
+		{
+			"stationName": "高坡國小",
+			"stationId": "81C710",
+			"longitude": 121.351592,
+			"latitude": 24.768006,
+			"elevation": 478,
+			"agency": "ARDSWC",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "復興區",
+			"sourceUrl": "https://246.ardswc.gov.tw/Monitoring/RainGraph/81C710"
+		},
+		{
+			"stationName": "奎輝國小",
+			"stationId": "81C780",
+			"longitude": 121.334494,
+			"latitude": 24.797506,
+			"elevation": 357.0,
+			"agency": "ARDSWC",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "復興區",
+			"sourceUrl": "https://246.ardswc.gov.tw/Monitoring/RainGraph/81C780"
+		},
+		{
+			"stationName": "華陵",
+			"stationId": "81C790",
+			"longitude": 121.397184,
+			"latitude": 24.663303,
+			"elevation": 1050.0,
+			"agency": "ARDSWC",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "復興區",
+			"sourceUrl": "https://246.ardswc.gov.tw/Monitoring/RainGraph/81C790"
+		},
+		{
+			"stationName": "蘇樂",
+			"stationId": "88C690",
+			"longitude": 121.356787,
+			"latitude": 24.700605,
+			"elevation": 681.0,
+			"agency": "ARDSWC",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "復興區",
+			"sourceUrl": "https://246.ardswc.gov.tw/Monitoring/RainGraph/88C690"
 		}
 	]
 }
