@@ -46,7 +46,8 @@ const districtBoundaryLayer = L.geoJSON(null, {
     weight: 2,
     fillColor: "#60a5fa",
     fillOpacity: 0.08
-  }
+  },
+  interactive: false
 }).addTo(map);
 
 const agencyColors = {
