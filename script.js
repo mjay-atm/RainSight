@@ -233,6 +233,11 @@ function renderStations(stationsToRender, totalStations, selectedDistrict) {
       weight: 1
     }).addTo(markerLayer);
 
+    marker.bindTooltip(`${station.stationName}（${station.stationId}）`, {
+      sticky: false,
+      direction: "top",
+      offset: [0, -6]
+    });
     marker.bindPopup(buildPopup(station), { maxWidth: 360 });
   });
 
@@ -334,7 +339,8 @@ function createFocusMask() {
           weight: 0,
           fillColor: "rgba(200, 200, 200, 0.6)",
           fillOpacity: 0.6
-        }
+        },
+        interactive: false
       }).addTo(maskLayer);
     }
   } catch (error) {
