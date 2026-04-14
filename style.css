@@ -137,26 +137,52 @@ h1 {
 
 .time-query-controls {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-areas:
+    "date date date"
+    "hour minute action";
   gap: 8px;
+  max-width: 100%;
 }
 
 .time-query-controls input,
+.time-query-controls select,
 .time-query-controls button {
   height: 34px;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: 8px;
   border: 1px solid rgba(191, 219, 254, 0.6);
   font-size: 0.9rem;
 }
 
-.time-query-controls input {
+.time-query-controls > * {
+  max-width: 100%;
+}
+
+.time-query-controls input[type="date"] {
+  grid-area: date;
+}
+
+.time-query-controls select:nth-of-type(1) {
+  grid-area: hour;
+}
+
+.time-query-controls select:nth-of-type(2) {
+  grid-area: minute;
+}
+
+.time-query-controls input,
+.time-query-controls select {
   padding: 0 10px;
-  background: rgba(15, 23, 42, 0.35);
-  color: #eff6ff;
+  background: rgba(255, 255, 255, 0.687);
+  color: #000000;
 }
 
 .time-query-controls button {
+  grid-area: action;
   padding: 0 12px;
+  white-space: nowrap;
   cursor: pointer;
   color: #1e3a8a;
   background: #dbeafe;
@@ -166,6 +192,12 @@ h1 {
 
 .time-query-controls button:hover {
   background: #bfdbfe;
+}
+
+@media (max-width: 640px) {
+  .time-query-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
 }
 
 .panel-section-head {

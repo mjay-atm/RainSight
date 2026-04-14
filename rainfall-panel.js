@@ -4,14 +4,16 @@
   const rankingList = document.getElementById("rainfallRanking");
   const rankingCaption = document.getElementById("rankingCaption");
   const districtFilter = document.getElementById("districtFilter");
-  const rainfallTimeInput = document.getElementById("rainfallTimeInput");
+  const rainfallDateInput = document.getElementById("rainfallDateInput");
+  const rainfallHourSelect = document.getElementById("rainfallHourSelect");
+  const rainfallMinuteSelect = document.getElementById("rainfallMinuteSelect");
   const rainfallTimeApply = document.getElementById("rainfallTimeApply");
+
+  const TEN_MINUTE_OPTIONS = ["00", "10", "20", "30", "40", "50"];
 
   if (!panelMeta || !districtSummary || !rankingList || !rankingCaption) {
     return;
   }
-
-  const rainfallDataUrls = ["./data/taoyuan_rainfall_24h_merged.json"];
 
   let rainfallPayload = null;
   let rainfallStations = [];
@@ -73,6 +75,97 @@
     return floored;
   }
 
+  function normalizeDateTimeLocalToTenMinutes(value) {
+    if (!value) {
+      return "";
+    }
+    const matched = String(value).match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!matched) {
+      return "";
+    }
+
+    const date = new Date(
+      Number(matched[1]),
+      Number(matched[2]) - 1,
+      Number(matched[3]),
+      Number(matched[4]),
+      Number(matched[5]),
+      0,
+      0
+    );
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return dateToDateTimeLocal(floorToTenMinutes(date));
+  }
+
+  function fillTimeSelectors() {
+    if (rainfallHourSelect) {
+      rainfallHourSelect.innerHTML = Array.from({ length: 24 }, (_, hour) => {
+        const value = pad2(hour);
+        return `<option value="${value}">${value} 時</option>`;
+      }).join("");
+    }
+
+    if (rainfallMinuteSelect) {
+      rainfallMinuteSelect.innerHTML = TEN_MINUTE_OPTIONS
+        .map((minute) => `<option value="${minute}">${minute} 分</option>`)
+        .join("");
+    }
+  }
+
+  function setPickerFromDate(date) {
+    if (!date || Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    if (rainfallDateInput) {
+      rainfallDateInput.value = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+    }
+
+    if (rainfallHourSelect) {
+      rainfallHourSelect.value = pad2(date.getHours());
+    }
+
+    if (rainfallMinuteSelect) {
+      rainfallMinuteSelect.value = pad2(date.getMinutes());
+    }
+  }
+
+  function setPickerFromDateTimeLocal(value) {
+    const normalized = normalizeDateTimeLocalToTenMinutes(value);
+    const matched = normalized.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})$/);
+    if (!matched) {
+      return;
+    }
+
+    if (rainfallDateInput) {
+      rainfallDateInput.value = matched[1];
+    }
+
+    if (rainfallHourSelect) {
+      rainfallHourSelect.value = matched[2];
+    }
+
+    if (rainfallMinuteSelect) {
+      rainfallMinuteSelect.value = matched[3];
+    }
+  }
+
+  function getSelectedDateTimeLocal() {
+    const dateValue = rainfallDateInput?.value || "";
+    const hourValue = rainfallHourSelect?.value || "";
+    const minuteValue = rainfallMinuteSelect?.value || "";
+
+    if (!dateValue || !hourValue || !minuteValue) {
+      return "";
+    }
+
+    return `${dateValue}T${hourValue}:${minuteValue}`;
+  }
+
   function pad2(value) {
     return String(value).padStart(2, "0");
   }
@@ -89,21 +182,74 @@
     return `./data/taoyuan_rainfall_24h_${stamp}.json`;
   }
 
-  function renderPanelMeta(payload, records, options = {}) {
-    const requestedTime = escapeHtml(formatDisplayTime(payload?.requested_time));
-    const windowStart = escapeHtml(formatDisplayTime(payload?.window_start));
-    const windowEnd = escapeHtml(formatDisplayTime(payload?.window_end));
+  function parseStampToDate(stamp) {
+    const matched = String(stamp || "").match(/^(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})$/);
+    if (!matched) {
+      return null;
+    }
+
+    const date = new Date(
+      Number(matched[1]),
+      Number(matched[2]) - 1,
+      Number(matched[3]),
+      Number(matched[4]),
+      Number(matched[5]),
+      0,
+      0
+    );
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  }
+
+  async function findNearestAvailableDataUrl(referenceDate) {
+    const response = await fetch("./data/");
+    if (!response.ok) {
+      throw new Error(`無法讀取 data 目錄 (${response.status})`);
+    }
+
+    const html = await response.text();
+    const regex = /taoyuan_rainfall_24h_(\d{8}_\d{4})\.json/g;
+    const candidates = [];
+    let match = regex.exec(html);
+
+    while (match) {
+      const stamp = match[1];
+      const date = parseStampToDate(stamp);
+      if (date) {
+        candidates.push({
+          stamp,
+          date,
+          url: buildDataUrlByStamp(stamp)
+        });
+      }
+      match = regex.exec(html);
+    }
+
+    if (candidates.length === 0) {
+      throw new Error("data 目錄中找不到可用雨量檔案");
+    }
+
+    candidates.sort((left, right) => {
+      const leftDiff = Math.abs(left.date.getTime() - referenceDate.getTime());
+      const rightDiff = Math.abs(right.date.getTime() - referenceDate.getTime());
+      return leftDiff - rightDiff;
+    });
+
+    return candidates[0];
+  }
+
+  function renderPanelMeta(records) {
     const topStation = [...records].sort((a, b) => b.rainfall_24h_mm - a.rainfall_24h_mm)[0];
 
     const topSummary = topStation
-      ? `全市最高為 ${escapeHtml(topStation.station_name)}（${escapeHtml(topStation.district)}），${formatRainfall(topStation.rainfall_24h_mm)}。`
+      ? `MAX： ${escapeHtml(topStation.station_name)}（${escapeHtml(topStation.district)}） ${formatRainfall(topStation.rainfall_24h_mm)}`
       : "目前沒有可顯示的雨量資料。";
 
-    const loadHint = options.queryTime
-      ? `查詢時間：${escapeHtml(formatDisplayTime(options.queryTime))}<br>`
-      : "";
-
-    panelMeta.innerHTML = `${loadHint}資料時間：${requestedTime}<br>統計區間：${windowStart} 至 ${windowEnd}<br>${topSummary}`;
+    panelMeta.innerHTML = topSummary;
   }
 
   function getDistrictLeaders(records) {
@@ -143,7 +289,7 @@
           <div class="district-summary-top">
             <div>
               <div class="district-name">${escapeHtml(record.district)}</div>
-              <div class="district-summary-meta">代表站：${escapeHtml(record.station_name)}（${escapeHtml(record.station_id)}）</div>
+              <div class="district-summary-meta">${escapeHtml(record.station_name)}（${escapeHtml(record.station_id)}）</div>
             </div>
             <div class="rainfall-value">${formatRainfall(record.rainfall_24h_mm)}</div>
           </div>
@@ -210,21 +356,7 @@
       return await response.json();
     }
 
-    const errors = [];
-
-    for (const url of rainfallDataUrls) {
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`${response.status}`);
-        }
-        return await response.json();
-      } catch (error) {
-        errors.push(`${url}: ${error.message}`);
-      }
-    }
-
-    throw new Error(errors.join("；"));
+    throw new Error("未提供資料檔路徑");
   }
 
   function normalizePayload(payload) {
@@ -242,8 +374,8 @@
       .filter((record) => record.station_id && record.station_name && Number.isFinite(record.rainfall_24h_mm));
   }
 
-  function render(options = {}) {
-    renderPanelMeta(rainfallPayload, rainfallStations, options);
+  function render() {
+    renderPanelMeta(rainfallStations);
     renderDistrictLeaders(rainfallStations);
     renderRanking(rainfallStations);
   }
@@ -256,30 +388,29 @@
       throw new Error("雨量 JSON 內沒有有效的 data 資料");
     }
 
-    if (rainfallTimeInput) {
-      const value = toDateTimeLocalValue(rainfallPayload?.requested_time);
-      if (value) {
-        rainfallTimeInput.value = value;
-      }
+    const value = toDateTimeLocalValue(rainfallPayload?.requested_time);
+    if (value) {
+      setPickerFromDateTimeLocal(value);
     }
 
-    render(options);
+    render();
   }
 
   async function initRainfallPanel() {
+    fillTimeSelectors();
+
     const defaultQueryDate = floorToTenMinutes(new Date());
     const defaultQueryLocal = dateToDateTimeLocal(defaultQueryDate);
     const defaultDataUrl = buildDataUrlByStamp(dateToFileStamp(defaultQueryDate));
 
-    if (rainfallTimeInput) {
-      rainfallTimeInput.value = defaultQueryLocal;
-    }
+    setPickerFromDate(defaultQueryDate);
 
     try {
       await loadAndRender(defaultDataUrl, { queryTime: defaultQueryLocal });
     } catch (error) {
       try {
-        await loadAndRender();
+        const nearest = await findNearestAvailableDataUrl(defaultQueryDate);
+        await loadAndRender(nearest.url, { queryTime: dateToDateTimeLocal(nearest.date) });
       } catch (fallbackError) {
         panelMeta.textContent = `載入雨量統計失敗：${fallbackError.message}`;
         districtSummary.innerHTML = '<p class="empty-text">無法建立各區代表測站統計。</p>';
@@ -296,7 +427,12 @@
   });
 
   rainfallTimeApply?.addEventListener("click", async () => {
-    const selectedTime = rainfallTimeInput?.value || "";
+    const selectedTime = normalizeDateTimeLocalToTenMinutes(getSelectedDateTimeLocal());
+
+    if (selectedTime) {
+      setPickerFromDateTimeLocal(selectedTime);
+    }
+
     const stamp = toFileStamp(selectedTime);
 
     if (!stamp) {
