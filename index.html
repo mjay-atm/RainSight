@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RainSight 測站地圖</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <style>
+    :root {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+
+    header {
+      padding: 14px 18px;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      opacity: 0.95;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    .toolbar label {
+      font-weight: 600;
+    }
+
+    .toolbar select {
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 0.9rem;
+    }
+
+    .header-right {
+      display: grid;
+      gap: 6px;
+      justify-items: end;
+    }
+
+    #map {
+      height: calc(100vh - 56px);
+      width: 100%;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 12px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .popup-title {
+      margin: 0 0 6px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .popup-grid {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 8px;
+      font-size: 0.9rem;
+    }
+
+    .popup-grid dt {
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .popup-grid dd {
+      margin: 0;
+      color: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RainSight｜桃園市雨量與氣象測站地圖</h1>
+    <div class="header-right">
+      <div class="toolbar">
+        <label for="districtFilter">行政區</label>
+        <select id="districtFilter" aria-label="行政區篩選">
+          <option value="ALL">全部</option>
+        </select>
+      </div>
+      <div class="meta" id="meta">載入中...</div>
+    </div>
+  </header>
+  <div id="map" aria-label="測站地圖"></div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const map = L.map("map", { zoomControl: true });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const agencyColors = {
+      CWA: "#2563eb",
+      WRG_TYCG: "#f59e0b",
+      WRA: "#16a34a"
+    };
+
+    const defaultColor = "#64748b";
+  const markerLayer = L.layerGroup().addTo(map);
+  const meta = document.getElementById("meta");
+  const districtFilter = document.getElementById("districtFilter");
+  let allStations = [];
+
+    function elevationText(value) {
+      return value === null || value === undefined ? "無資料" : `${value} m`;
+    }
+
+    function sourceText(station) {
+      if (station.sourceUrl) {
+        return `<a href="${station.sourceUrl}" target="_blank" rel="noopener noreferrer">資料來源連結</a>`;
+      }
+      return "無";
+    }
+
+    function buildPopup(station) {
+      return `
+        <h2 class="popup-title">${station.stationName}</h2>
+        <dl class="popup-grid">
+          <dt>站號</dt><dd>${station.stationId}</dd>
+          <dt>機構</dt><dd>${station.agency}</dd>
+          <dt>測站類型</dt><dd>${station.stationType}</dd>
+          <dt>行政區</dt><dd>${station.county}${station.district}</dd>
+          <dt>海拔</dt><dd>${elevationText(station.elevation)}</dd>
+          <dt>座標</dt><dd>${station.latitude.toFixed(6)}, ${station.longitude.toFixed(6)}</dd>
+          <dt>來源</dt><dd>${sourceText(station)}</dd>
+        </dl>
+      `;
+    }
+
+    function countByAgency(stations) {
+      return stations.reduce((acc, station) => {
+        acc[station.agency] = (acc[station.agency] || 0) + 1;
+        return acc;
+      }, {});
+    }
+
+    function updateMeta(visibleStations, totalStations) {
+      const counts = countByAgency(visibleStations);
+      meta.innerHTML = `顯示 ${visibleStations.length} / ${totalStations} 個測站` +
+        Object.entries(counts)
+          .map(([agency, count]) => {
+            const color = agencyColors[agency] || defaultColor;
+            return `<span class="badge"><span class="dot" style="background:${color}"></span>${agency}: ${count}</span>`;
+          })
+          .join("");
+    }
+
+    function renderStations(stationsToRender, totalStations) {
+      markerLayer.clearLayers();
+      const bounds = [];
+
+      stationsToRender.forEach((station) => {
+        if (typeof station.latitude !== "number" || typeof station.longitude !== "number") {
+          return;
+        }
+
+        const color = agencyColors[station.agency] || defaultColor;
+        const marker = L.circleMarker([station.latitude, station.longitude], {
+          radius: 6,
+          color,
+          fillColor: color,
+          fillOpacity: 0.75,
+          weight: 1
+        }).addTo(markerLayer);
+
+        marker.bindPopup(buildPopup(station), { maxWidth: 360 });
+        bounds.push([station.latitude, station.longitude]);
+      });
+
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [24, 24], maxZoom: 14 });
+      } else {
+        map.setView([24.99, 121.25], 11);
+      }
+
+      updateMeta(stationsToRender, totalStations);
+    }
+
+    function setupDistrictFilter(stations) {
+      const districts = [...new Set(stations.map((station) => station.district).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, "zh-Hant"));
+
+      districtFilter.innerHTML = `<option value="ALL">全部</option>` +
+        districts.map((district) => `<option value="${district}">${district}</option>`).join("");
+
+      districtFilter.addEventListener("change", () => {
+        const selectedDistrict = districtFilter.value;
+        const filteredStations = selectedDistrict === "ALL"
+          ? allStations
+          : allStations.filter((station) => station.district === selectedDistrict);
+
+        renderStations(filteredStations, allStations.length);
+      });
+    }
+
+    async function init() {
+      try {
+        const response = await fetch("./station.json");
+        if (!response.ok) {
+          throw new Error(`讀取 station.json 失敗 (${response.status})`);
+        }
+
+        const data = await response.json();
+        const stations = Array.isArray(data.stations) ? data.stations : [];
+
+        if (stations.length === 0) {
+          throw new Error("station.json 內沒有 stations 資料");
+        }
+
+        allStations = stations;
+        setupDistrictFilter(allStations);
+        renderStations(allStations, allStations.length);
+      } catch (error) {
+        map.setView([24.99, 121.25], 11);
+        meta.textContent = `載入失敗：${error.message}。請以本機伺服器方式開啟此頁（例如 python -m http.server）。`;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
