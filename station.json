@@ -9,271 +9,308 @@
 			"agency": "CWA",
 			"stationType": "Weather Station",
 			"county": "桃園市",
-			"district": "新屋區"
+			"district": "新屋區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=46705"
 		},
 		{
-			"stationName": "桃園農改場",
+			"stationName": "桃園農改",
 			"stationId": "72C440",
 			"longitude": 121.030583,
 			"latitude": 24.950944,
-			"elevation": 70,
+			"elevation": 70.0,
 			"agency": "CWA",
 			"stationType": "Rainfall Station",
 			"county": "桃園市",
-			"district": "新屋區"
+			"district": "新屋區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=72C44"
 		},
 		{
 			"stationName": "茶改場",
 			"stationId": "82C160",
 			"longitude": 121.185333,
 			"latitude": 24.908472,
-			"elevation": 195,
+			"elevation": 195.0,
 			"agency": "CWA",
 			"stationType": "Rainfall Station",
 			"county": "桃園市",
-			"district": "楊梅區"
+			"district": "楊梅區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=82C16"
 		},
 		{
 			"stationName": "農工中心",
 			"stationId": "A2C560",
 			"longitude": 121.239833,
 			"latitude": 24.985917,
-			"elevation": 121,
+			"elevation": 121.0,
 			"agency": "CWA",
 			"stationType": "Rainfall Station",
 			"county": "桃園市",
-			"district": "中壢區"
+			"district": "中壢區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=A2C56"
 		},
 		{
 			"stationName": "中央大學",
 			"stationId": "C2C410",
 			"longitude": 121.185165,
 			"latitude": 24.967652,
-			"elevation": 129,
+			"elevation": 129.0,
 			"agency": "CWA",
 			"stationType": "Agricultural Station",
 			"county": "桃園市",
-			"district": "中壢區"
+			"district": "中壢區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C2C41"
 		},
 		{
 			"stationName": "桃園",
 			"stationId": "C2C480",
 			"longitude": 121.323172,
 			"latitude": 24.992425,
-			"elevation": 105,
+			"elevation": 105.0,
 			"agency": "CWA",
 			"stationType": "Agricultural Station",
 			"county": "桃園市",
-			"district": "桃園區"
+			"district": "桃園區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C2C48"
 		},
 		{
 			"stationName": "觀音",
 			"stationId": "C2C590",
 			"longitude": 121.153317,
 			"latitude": 25.027072,
-			"elevation": 72,
+			"elevation": 72.0,
 			"agency": "CWA",
 			"stationType": "Agricultural Station",
 			"county": "桃園市",
-			"district": "觀音區"
+			"district": "觀音區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C2C59"
 		},
 		{
 			"stationName": "八德蔬果",
 			"stationId": "C2C810",
-			"longitude": 121.28187,
-			"latitude": 24.97858,
-			"elevation": 123,
+			"longitude": 121.281870,
+			"latitude": 24.978580,
+			"elevation": 123.0,
 			"agency": "CWA",
 			"stationType": "Agricultural Station",
 			"county": "桃園市",
-			"district": "八德區"
+			"district": "八德區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C2C81"
 		},
 		{
 			"stationName": "中德",
 			"stationId": "C2C830",
 			"longitude": 121.291344,
 			"latitude": 24.981862,
-			"elevation": 117,
+			"elevation": 117.0,
 			"agency": "CWA",
 			"stationType": "Agricultural Station",
 			"county": "桃園市",
-			"district": "八德區"
+			"district": "八德區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C2C83"
 		},
 		{
 			"stationName": "復興",
 			"stationId": "C0C460",
 			"longitude": 121.352281,
 			"latitude": 24.820208,
-			"elevation": 482,
+			"elevation": 482.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "復興區"
+			"district": "復興區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C46"
 		},
 		{
 			"stationName": "八德",
 			"stationId": "C0C490",
 			"longitude": 121.283289,
 			"latitude": 24.928708,
-			"elevation": 157,
+			"elevation": 157.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "八德區"
+			"district": "八德區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C49"
 		},
 		{
 			"stationName": "蘆竹",
 			"stationId": "C0C620",
 			"longitude": 121.265767,
 			"latitude": 25.084275,
-			"elevation": 19,
+			"elevation": 19.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "蘆竹區"
+			"district": "蘆竹區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C62"
 		},
 		{
 			"stationName": "大溪",
 			"stationId": "C0C630",
 			"longitude": 121.265547,
 			"latitude": 24.882853,
-			"elevation": 209,
+			"elevation": 209.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "大溪區"
+			"district": "大溪區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C63"
 		},
 		{
 			"stationName": "平鎮",
 			"stationId": "C0C650",
 			"longitude": 121.214636,
 			"latitude": 24.897503,
-			"elevation": 208,
+			"elevation": 208.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "平鎮區"
+			"district": "平鎮區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C65"
 		},
 		{
 			"stationName": "楊梅",
 			"stationId": "C0C660",
 			"longitude": 121.143047,
 			"latitude": 24.912375,
-			"elevation": 176,
+			"elevation": 176.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "楊梅區"
+			"district": "楊梅區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C66"
 		},
 		{
 			"stationName": "龍潭",
 			"stationId": "C0C670",
 			"longitude": 121.221389,
 			"latitude": 24.870056,
-			"elevation": 250,
+			"elevation": 250.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "龍潭區"
+			"district": "龍潭區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C67"
 		},
 		{
 			"stationName": "龜山",
 			"stationId": "C0C680",
-			"longitude": 121.38656,
-			"latitude": 25.02846,
-			"elevation": 228,
+			"longitude": 121.386561,
+			"latitude": 25.028458,
+			"elevation": 228.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "龜山區"
+			"district": "龜山區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C68"
+		},
+		{
+			"stationName": "國一五楊N44K",
+			"stationId": "C0C690",
+			"longitude": 121.340164,
+			"latitude": 25.063861,
+			"elevation": 242.0,
+			"agency": "CWA",
+			"stationType": "Automatic Weather Station",
+			"county": "桃園市",
+			"district": "龜山區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C69"
 		},
 		{
 			"stationName": "中壢",
 			"stationId": "C0C700",
 			"longitude": 121.256375,
 			"latitude": 24.977661,
-			"elevation": 151,
+			"elevation": 151.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "中壢區"
+			"district": "中壢區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C70"
 		},
 		{
 			"stationName": "大溪永福",
 			"stationId": "C0C710",
 			"longitude": 121.324975,
 			"latitude": 24.892936,
-			"elevation": 143,
+			"elevation": 143.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "大溪區"
+			"district": "大溪區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C71"
 		},
 		{
 			"stationName": "竹圍",
 			"stationId": "C0C720",
 			"longitude": 121.239824,
 			"latitude": 25.112692,
-			"elevation": 21,
+			"elevation": 21.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "大園區"
+			"district": "大園區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C72"
 		},
 		{
 			"stationName": "中大臨海站",
 			"stationId": "C0C730",
-			"longitude": 121.008581,
-			"latitude": 24.966126,
-			"elevation": 5,
+			"longitude": 121.008583,
+			"latitude": 24.966128,
+			"elevation": 5.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "新屋區"
+			"district": "新屋區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C73"
 		},
 		{
 			"stationName": "觀音工業區",
 			"stationId": "C0C740",
-			"longitude": 121.114856,
-			"latitude": 25.064764,
+			"longitude": 121.114858,
+			"latitude": 25.064767,
 			"elevation": 5.3,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "觀音區"
+			"district": "觀音區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C74"
 		},
 		{
 			"stationName": "新興坑尾",
 			"stationId": "C0C750",
-			"longitude": 121.0971,
-			"latitude": 25.0061,
-			"elevation": 72,
+			"longitude": 121.097072,
+			"latitude": 25.006066,
+			"elevation": 72.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "觀音區"
+			"district": "觀音區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C75"
 		},
 		{
 			"stationName": "東眼山",
 			"stationId": "C0C790",
-			"longitude": 121.40888,
-			"latitude": 24.8284,
-			"elevation": 858,
+			"longitude": 121.408880,
+			"latitude": 24.828400,
+			"elevation": 858.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "復興區"
+			"district": "復興區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C79"
 		},
 		{
 			"stationName": "四稜",
 			"stationId": "C0C800",
-			"longitude": 121.4293,
-			"latitude": 24.64733,
-			"elevation": 1167,
+			"longitude": 121.429300,
+			"latitude": 24.647330,
+			"elevation": 1167.0,
 			"agency": "CWA",
 			"stationType": "Automatic Weather Station",
 			"county": "桃園市",
-			"district": "復興區"
+			"district": "復興區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=C0C80"
 		},
 		{
 			"stationName": "水尾",
@@ -285,6 +322,102 @@
 			"stationType": "Rainfall Station",
 			"county": "桃園市",
 			"district": "楊梅區"
+		},
+		{
+			"stationName": "國一S072K",
+			"stationId": "CAC010",
+			"longitude": 121.134200,
+			"latitude": 24.895830,
+			"elevation": 214.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "大溪區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC01"
+		},
+		{
+			"stationName": "國二E009K",
+			"stationId": "CAC020",
+			"longitude": 121.273697,
+			"latitude": 25.018244,
+			"elevation": 109.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "桃園區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC02"
+		},
+		{
+			"stationName": "國三N063K",
+			"stationId": "CAC030",
+			"longitude": 121.263600,
+			"latitude": 24.889514,
+			"elevation": 203.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "大溪區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC03"
+		},
+		{
+			"stationName": "拉拉山",
+			"stationId": "CAC040",
+			"longitude": 121.427133,
+			"latitude": 24.699317,
+			"elevation": 1684.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "復興區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC04"
+		},
+		{
+			"stationName": "西濱S023K",
+			"stationId": "CAC050",
+			"longitude": 121.275510,
+			"latitude": 25.116490,
+			"elevation": 23.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "蘆竹區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC05"
+		},
+		{
+			"stationName": "西濱S032K",
+			"stationId": "CAC060",
+			"longitude": 121.192505,
+			"latitude": 25.091966,
+			"elevation": 21.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "大園區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC06"
+		},
+		{
+			"stationName": "國一高架N063K",
+			"stationId": "CAC760",
+			"longitude": 121.196314,
+			"latitude": 24.950281,
+			"elevation": 170.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "平鎮區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC76"
+		},
+		{
+			"stationName": "國三N072K",
+			"stationId": "CAC770",
+			"longitude": 121.199371,
+			"latitude": 24.836391,
+			"elevation": 313.0,
+			"agency": "CWA",
+			"stationType": "Rainfall Station",
+			"county": "桃園市",
+			"district": "龍潭區",
+			"sourceUrl": "https://www.cwa.gov.tw/V8/C/W/OBS_Station.html?ID=CAC77"
 		},
 		{
 			"stationName": "滿庭芳",
