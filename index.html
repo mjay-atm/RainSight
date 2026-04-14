@@ -27,7 +27,44 @@
       <div class="meta" id="meta">載入中...</div>
     </div>
   </header>
-  <div id="map" aria-label="測站地圖"></div>
+  <main class="app-layout">
+    <aside class="rainfall-panel" aria-labelledby="rainfallPanelTitle">
+      <section class="panel-section panel-intro">
+        <p class="panel-kicker">過去 24 小時雨量統計</p>
+        <h2 id="rainfallPanelTitle">雨量統計面板</h2>
+        <div class="time-query">
+          <label for="rainfallTimeInput">指定時間</label>
+          <div class="time-query-controls">
+            <input id="rainfallTimeInput" type="datetime-local" step="60" aria-label="指定雨量查詢時間" />
+            <button id="rainfallTimeApply" type="button">載入</button>
+          </div>
+        </div>
+        <p class="panel-description" id="rainfallPanelMeta">載入中...</p>
+      </section>
+
+      <section class="panel-section">
+        <div class="panel-section-head">
+          <div>
+            <h3>各區代表測站</h3>
+            <p class="panel-caption">各鄉鎮市區最大 24 小時累積雨量</p>
+          </div>
+        </div>
+        <div id="districtRainfallSummary" class="district-summary-list loading-text">載入中...</div>
+      </section>
+
+      <section class="panel-section panel-section-fill">
+        <div class="panel-section-head">
+          <div>
+            <h3>測站排行榜</h3>
+            <p class="panel-caption" id="rankingCaption">依行政區篩選中...</p>
+          </div>
+        </div>
+        <div id="rainfallRanking" class="ranking-list loading-text">載入中...</div>
+      </section>
+    </aside>
+
+    <div id="map" aria-label="測站地圖"></div>
+  </main>
 
   <script
     src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -35,5 +72,6 @@
     crossorigin=""
   ></script>
   <script src="script.js"></script>
+  <script src="rainfall-panel.js"></script>
 </body>
 </html>
