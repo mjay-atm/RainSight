@@ -1,0 +1,94 @@
+name: Update Taoyuan 24h Rainfall Data
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: update-rainfall-data
+  cancel-in-progress: false
+
+# ---------------------------------------------------------------------------
+# Required repository secrets:
+#   SSH_HOST            - 伺服器 IP 或 hostname
+#   SSH_USER            - SSH 登入帳號
+#   SSH_PRIVATE_KEY     - 對應的 SSH 私鑰（PEM 格式）
+#   REMOTE_PROJECT_PATH - 伺服器上的專案目錄，例如 /home/user/RainSight
+# ---------------------------------------------------------------------------
+
+jobs:
+  # ---------- 有新 push 時：在伺服器同步最新程式碼 ----------
+  deploy:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pull latest code on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd "${{ secrets.REMOTE_PROJECT_PATH }}"
+            git pull --ff-only
+
+  # ---------- 排程 / 手動觸發：runner 抓取資料後 rsync 傳回伺服器 ----------
+  fetch-rainfall:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Taipei
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate rainfall json
+        id: fetch
+        run: |
+          set -euo pipefail
+          mkdir -p data
+
+          read target_time stamp <<< $(python3 - <<'PY'
+from datetime import datetime, timedelta
+query_time = datetime.now() - timedelta(minutes=10)
+query_time = query_time.replace(minute=(query_time.minute // 10) * 10, second=0, microsecond=0)
+print(query_time.strftime('%Y-%m-%d %H:%M:%S'), query_time.strftime('%Y%m%d_%H%M'))
+PY
+)
+
+          output_file="data/taoyuan_rainfall_24h_${stamp}.json"
+
+          python fetch_station_24h_rainfall.py \
+            --time "$target_time" \
+            --county "桃園市" \
+            --output "$output_file"
+
+          echo "output_file=$output_file" >> "$GITHUB_OUTPUT"
+
+      - name: Setup SSH key
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Rsync json to server
+        run: |
+          rsync -az --mkpath \
+            "${{ steps.fetch.outputs.output_file }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PROJECT_PATH }}/data/"
