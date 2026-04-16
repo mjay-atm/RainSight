@@ -74,6 +74,7 @@ jobs:
             --output "$output_file"
 
           echo "output_file=$output_file" >> "$GITHUB_OUTPUT"
+          echo "stamp=${stamp}" >> "$GITHUB_OUTPUT"
 
       - name: Setup SSH key
         run: |
@@ -81,8 +82,17 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Rsync json to server
+      - name: Update manifest
+        run: |
+          python3 -c "
+          import json, pathlib
+          p = pathlib.Path('data/manifest.json')
+          p.write_text(json.dumps({'latest_stamp': '${{ steps.fetch.outputs.stamp }}'}, ensure_ascii=False, indent=2), encoding='utf-8')
+          "
+
+      - name: Rsync json and manifest to server
         run: |
           rsync -az --mkpath \
             "${{ steps.fetch.outputs.output_file }}" \
+            data/manifest.json \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PROJECT_PATH }}/data/"

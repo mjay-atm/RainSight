@@ -206,32 +206,20 @@
   }
 
   async function findNearestAvailableDataUrl(referenceDate) {
-    const response = await fetch("./data/");
+    const response = await fetch("./data/manifest.json");
     if (!response.ok) {
-      throw new Error(`無法讀取 data 目錄 (${response.status})`);
+      throw new Error(`無法讀取 manifest.json (${response.status})`);
     }
 
-    const html = await response.text();
-    const regex = /taoyuan_rainfall_24h_(\d{8}_\d{4})\.json/g;
-    const candidates = [];
-    let match = regex.exec(html);
+    const manifest = await response.json();
+    const stamp = manifest?.latest_stamp;
+    const date = parseStampToDate(stamp);
 
-    while (match) {
-      const stamp = match[1];
-      const date = parseStampToDate(stamp);
-      if (date) {
-        candidates.push({
-          stamp,
-          date,
-          url: buildDataUrlByStamp(stamp)
-        });
-      }
-      match = regex.exec(html);
+    if (!stamp || !date) {
+      throw new Error("manifest.json 中找不到可用雨量檔案");
     }
 
-    if (candidates.length === 0) {
-      throw new Error("data 目錄中找不到可用雨量檔案");
-    }
+    const candidates = [{ stamp, date, url: buildDataUrlByStamp(stamp) }];
 
     candidates.sort((left, right) => {
       const leftDiff = Math.abs(left.date.getTime() - referenceDate.getTime());
