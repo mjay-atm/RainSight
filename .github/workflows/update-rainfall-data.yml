@@ -64,7 +64,7 @@ jobs:
           set -euo pipefail
           mkdir -p data
 
-          read -r target_time stamp <<< "$(python3 -c "from datetime import datetime, timedelta; q=datetime.now()-timedelta(minutes=10); q=q.replace(minute=(q.minute//10)*10, second=0, microsecond=0); print(q.strftime('%Y-%m-%d %H:%M:%S'), q.strftime('%Y%m%d_%H%M'))")"
+          IFS='|' read -r target_time stamp <<< "$(python3 -c "from datetime import datetime, timedelta; q=datetime.now()-timedelta(minutes=10); q=q.replace(minute=(q.minute//10)*10, second=0, microsecond=0); print(q.strftime('%Y-%m-%d %H:%M:%S') + '|' + q.strftime('%Y%m%d_%H%M'))")"
 
           output_file="data/taoyuan_rainfall_24h_${stamp}.json"
 
