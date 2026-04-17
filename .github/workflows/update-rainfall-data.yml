@@ -21,6 +21,7 @@ concurrency:
 #   SSH_USER            - SSH 登入帳號
 #   SSH_PRIVATE_KEY     - 對應的 SSH 私鑰（PEM 格式）
 #   REMOTE_PROJECT_PATH - 伺服器上的專案目錄，例如 /home/user/RainSight
+#   REMOTE_WATCH_PATH   - 接收 24h moving 資料的目錄
 # ---------------------------------------------------------------------------
 
 jobs:
@@ -75,6 +76,22 @@ jobs:
 
           echo "output_file=$output_file" >> "$GITHUB_OUTPUT"
           echo "stamp=${stamp}" >> "$GITHUB_OUTPUT"
+          echo "target_time=${target_time}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate 24h moving rainfall json
+        id: fetch_moving
+        run: |
+          set -euo pipefail
+          mkdir -p data
+
+          moving_file="data/taoyuan_rainfall_24H_moving_${{ steps.fetch.outputs.stamp }}.json"
+
+          python fetch_rain_24h_moving.py \
+            --time "${{ steps.fetch.outputs.target_time }}" \
+            --county "桃園市" \
+            --output "$moving_file"
+
+          echo "moving_file=$moving_file" >> "$GITHUB_OUTPUT"
 
       - name: Setup SSH key
         run: |
@@ -96,3 +113,9 @@ jobs:
             "${{ steps.fetch.outputs.output_file }}" \
             data/manifest.json \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_PROJECT_PATH }}/data/"
+
+      - name: Rsync 24h moving json to watch server
+        run: |
+          rsync -az --mkpath \
+            "${{ steps.fetch_moving.outputs.moving_file }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.REMOTE_WATCH_PATH }}/"
