@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import argparse
 import json
 from pathlib import Path
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -208,7 +209,16 @@ def compute_windows_accumulation(df, ordered_hours, hour_to_dt, window_size, mod
 def ask_start_date_if_needed(start_date_arg):
     if start_date_arg is not None:
         return start_date_arg
-    user_input = input("請輸入起算日期（YYYY-MM-DD，直接 Enter 使用預設可行日期）: ").strip()
+
+    # In non-interactive environments (e.g., CI), skip prompt and use default valid date.
+    if not sys.stdin.isatty():
+        return None
+
+    try:
+        user_input = input("請輸入起算日期（YYYY-MM-DD，直接 Enter 使用預設可行日期）: ").strip()
+    except EOFError:
+        return None
+
     return user_input or None
 
 
