@@ -1,0 +1,257 @@
+name: NCDR Forecast Download, Plot, and Upload
+
+on:
+  schedule:
+    # GitHub Actions cron uses UTC. 00:00 UTC = 08:00 Asia/Taipei.
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ncdr-forecast-download-plot-upload
+  cancel-in-progress: false
+
+# ---------------------------------------------------------------------------
+# Required repository secrets:
+#   NCDR_API_RAIN_TOKEN        - NCDR API token
+#
+#   JMP_HOST               - 跳板伺服器 host/IP
+#   JMP_USER               - 跳板伺服器使用者
+#
+#   NAS_HOST                   - NAS SSH host/IP (需由跳板連入)
+#   NAS_USER                   - NAS SSH 使用者
+#   NAS_TARGET_PATH            - NAS 上目標目錄（預報資料與圖檔共用）
+#
+#   WEB_HOST                   - 網頁伺服器 host/IP (可由 GitHub runner 直連)
+#   WEB_USER                   - 網頁伺服器 SSH 使用者
+#   WEB_PLOT_PATH              - 網頁伺服器圖檔目錄
+#
+#   JMP_SSH_PRIVATE_KEY       - 跳板機私鑰
+#   NAS_SSH_PRIVATE_KEY        - NAS 私鑰
+#   WEB_SSH_PRIVATE_KEY        - 網頁伺服器私鑰
+# ---------------------------------------------------------------------------
+
+jobs:
+  fetch-and-upload-raw:
+    runs-on: ubuntu-latest
+    outputs:
+      nas_subdir: ${{ steps.nas_folder.outputs.subdir }}
+    env:
+      TZ: Asia/Taipei
+      NCDR_CSV_URL: https://dataapi2.ncdr.nat.gov.tw/NCDR/EnsembleG01?DataFormat=CSV
+      NCDR_JSON_URL: https://dataapi2.ncdr.nat.gov.tw/NCDR/EnsembleG01?DataFormat=JSON
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download latest NCDR forecast CSV/JSON with curl
+        env:
+          NCDR_API_RAIN_TOKEN: ${{ secrets.NCDR_API_RAIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          token="${NCDR_API_RAIN_TOKEN}"
+          if [[ -z "${token}" ]]; then
+            echo "NCDR_API_RAIN_TOKEN is empty" >&2
+            exit 1
+          fi
+
+          curl -fsSL --connect-timeout 20 --max-time 120 \
+            -H "Authorization: Bearer ${token}" \
+            "${NCDR_CSV_URL}" -o ncdr_rain_G01.csv
+
+          curl -fsSL --connect-timeout 20 --max-time 120 \
+            -H "Authorization: Bearer ${token}" \
+            "${NCDR_JSON_URL}" -o ncdr_rain_G01.json
+
+          if [[ ! -s ncdr_rain_G01.csv ]]; then
+            echo "Failed to download valid CSV file" >&2
+            exit 1
+          fi
+          if [[ ! -s ncdr_rain_G01.json ]]; then
+            echo "Failed to download valid JSON file" >&2
+            exit 1
+          fi
+
+          if grep -qi "<html" ncdr_rain_G01.csv || grep -qi "<html" ncdr_rain_G01.json; then
+            echo "Downloaded file looks like HTML error page" >&2
+            exit 1
+          fi
+
+          echo "downloaded: ncdr_rain_G01.csv ($(wc -c < ncdr_rain_G01.csv) bytes)"
+          echo "downloaded: ncdr_rain_G01.json ($(wc -c < ncdr_rain_G01.json) bytes)"
+
+      - name: Setup SSH config (bastion + targets)
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          install -m 600 -D /dev/null ~/.ssh/id_jump_ed25519
+          install -m 600 -D /dev/null ~/.ssh/id_nas_ed25519
+          printf '%s\n' "${{ secrets.JMP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_jump_ed25519
+          printf '%s\n' "${{ secrets.NAS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_nas_ed25519
+
+          cat > ~/.ssh/config <<EOF
+          Host bastion
+            HostName ${{ secrets.JMP_HOST }}
+            User ${{ secrets.JMP_USER }}
+            IdentityFile ~/.ssh/id_jump_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+
+          Host nas-via-bastion
+            HostName ${{ secrets.NAS_HOST }}
+            User ${{ secrets.NAS_USER }}
+            ProxyJump bastion
+            IdentityFile ~/.ssh/id_nas_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+
+          ssh-keyscan -H "${{ secrets.JMP_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.NAS_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Build NAS timestamp folder name
+        id: nas_folder
+        run: |
+          set -euo pipefail
+          subdir=$(date +"%Y%m%d_%H")
+          echo "subdir=${subdir}" >> "$GITHUB_OUTPUT"
+          echo "nas_subdir=${subdir}"
+
+      - name: Upload NCDR forecast data to NAS (via bastion)
+        run: |
+          set -euo pipefail
+          target_path="${{ secrets.NAS_TARGET_PATH }}/${{ steps.nas_folder.outputs.subdir }}"
+          ssh nas-via-bastion "mkdir -p '${target_path}'"
+          rsync -az --mkpath \
+            ncdr_rain_G01.csv \
+            ncdr_rain_G01.json \
+            "nas-via-bastion:${target_path}/"
+
+      - name: Upload raw forecast artifact for next job
+        uses: actions/upload-artifact@v4
+        with:
+          name: ncdr-raw-forecast
+          path: |
+            ncdr_rain_G01.csv
+            ncdr_rain_G01.json
+          if-no-files-found: error
+          retention-days: 1
+
+  plot-and-upload:
+    needs: fetch-and-upload-raw
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Taipei
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download raw forecast artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ncdr-raw-forecast
+          path: .
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt "fiona==1.9.6"
+
+      - name: Build county shapefile from town shapefile
+        run: |
+          set -euo pipefail
+          python - << 'PY'
+          import geopandas as gpd
+
+          town_shp = "data/town_shp/TOWN_MOI_1140318.shp"
+          out_shp = "data/county_from_town.shp"
+
+          gdf = gpd.read_file(town_shp, encoding="utf-8")
+          county = gdf.dissolve(by="COUNTYNAME", as_index=False)
+          county.to_file(out_shp, encoding="utf-8")
+          print(f"generated: {out_shp}")
+          PY
+
+      - name: Plot latest 3-day daily rainfall forecast
+        run: |
+          set -euo pipefail
+          python plot_ncdr_in3days.py \
+            --csv ncdr_rain_G01.csv \
+            --json ncdr_rain_G01.json \
+            --mode daily \
+            --county-shp data/county_from_town.shp \
+            --town-shp data/town_shp/TOWN_MOI_1140318.shp
+
+          png_file=$(ls -t taoyuan_3days_daily_*.png | head -n1)
+          if [[ -z "${png_file}" ]]; then
+            echo "No output png found" >&2
+            exit 1
+          fi
+
+          echo "PLOT_PNG=${png_file}" >> "$GITHUB_ENV"
+          echo "PLOT_PNG=${png_file}"
+
+      - name: Setup SSH config (bastion + targets)
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          install -m 600 -D /dev/null ~/.ssh/id_jump_ed25519
+          install -m 600 -D /dev/null ~/.ssh/id_nas_ed25519
+          install -m 600 -D /dev/null ~/.ssh/id_web_ed25519
+          printf '%s\n' "${{ secrets.JMP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_jump_ed25519
+          printf '%s\n' "${{ secrets.NAS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_nas_ed25519
+          printf '%s\n' "${{ secrets.WEB_SSH_PRIVATE_KEY }}" > ~/.ssh/id_web_ed25519
+
+          cat > ~/.ssh/config <<EOF
+          Host bastion
+            HostName ${{ secrets.JMP_HOST }}
+            User ${{ secrets.JMP_USER }}
+            IdentityFile ~/.ssh/id_jump_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+
+          Host nas-via-bastion
+            HostName ${{ secrets.NAS_HOST }}
+            User ${{ secrets.NAS_USER }}
+            ProxyJump bastion
+            IdentityFile ~/.ssh/id_nas_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+
+          Host web-direct
+            HostName ${{ secrets.WEB_HOST }}
+            User ${{ secrets.WEB_USER }}
+            IdentityFile ~/.ssh/id_web_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+
+          ssh-keyscan -H "${{ secrets.JMP_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.NAS_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.WEB_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Upload plot to NAS (via bastion)
+        run: |
+          set -euo pipefail
+          target_path="${{ secrets.NAS_TARGET_PATH }}/${{ needs.fetch-and-upload-raw.outputs.nas_subdir }}"
+          ssh nas-via-bastion "mkdir -p '${target_path}'"
+          rsync -az --mkpath \
+            "${PLOT_PNG}" \
+            "nas-via-bastion:${target_path}/"
+
+      - name: Upload plot to web server (direct)
+        run: |
+          set -euo pipefail
+          ssh web-direct "mkdir -p '${{ secrets.WEB_PLOT_PATH }}'"
+          rsync -az --mkpath \
+            "${PLOT_PNG}" \
+            "web-direct:${{ secrets.WEB_PLOT_PATH }}/"
