@@ -163,44 +163,46 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt "fiona==1.9.6"
 
-      - name: Download and extract town shapefile (TGOS)
+      - name: Setup SSH config (bastion + NAS for town shapefile sync)
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          install -m 600 -D /dev/null ~/.ssh/id_jump_ed25519
+          install -m 600 -D /dev/null ~/.ssh/id_nas_ed25519
+          printf '%s\n' "${{ secrets.JMP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_jump_ed25519
+          printf '%s\n' "${{ secrets.NAS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_nas_ed25519
+
+          cat > ~/.ssh/config <<EOF
+          Host bastion
+            HostName ${{ secrets.JMP_HOST }}
+            User ${{ secrets.JMP_USER }}
+            IdentityFile ~/.ssh/id_jump_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+
+          Host nas-via-bastion
+            HostName ${{ secrets.NAS_HOST }}
+            User ${{ secrets.NAS_USER }}
+            ProxyJump bastion
+            IdentityFile ~/.ssh/id_nas_ed25519
+            IdentitiesOnly yes
+            StrictHostKeyChecking accept-new
+          EOF
+
+      - name: Sync town shapefile folder from NAS
         run: |
           set -euo pipefail
           mkdir -p data/town_shp
-          TGOS_TOWN_ZIP_URL="https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
-          curl -fL --connect-timeout 20 --max-time 180 \
-            "${TGOS_TOWN_ZIP_URL}" -o data/town_shp/tgos_town_boundary.zip
+          rsync -az \
+            "nas-via-bastion:${{ secrets.NAS_TARGET_PATH }}/town_shp/" \
+            "data/town_shp/"
 
-          python - << 'PY'
-          import shutil
-          import zipfile
-          from pathlib import Path
-
-          base_dir = Path("data/town_shp")
-          zip_path = base_dir / "tgos_town_boundary.zip"
-          expected_shp = base_dir / "TOWN_MOI_1140318.shp"
-
-          with zipfile.ZipFile(zip_path) as zf:
-            zf.extractall(base_dir)
-
-          if not expected_shp.exists():
-            candidates = list(base_dir.rglob("TOWN_MOI_1140318.shp"))
-            if not candidates:
-              raise SystemExit(
-                "TOWN_MOI_1140318.shp not found after extraction. "
-                f"Extracted under: {base_dir}"
-              )
-
-            src_dir = candidates[0].parent
-            for path in src_dir.glob("TOWN_MOI_1140318*"):
-              if path.is_file():
-                shutil.copy2(path, base_dir / path.name)
-
-          if not expected_shp.exists():
-            raise SystemExit(f"Missing expected shapefile: {expected_shp}")
-
-          print(f"ready: {expected_shp}")
-          PY
+          if [[ ! -f data/town_shp/TOWN_MOI_1140318.shp ]]; then
+            echo "Missing expected shapefile: data/town_shp/TOWN_MOI_1140318.shp" >&2
+            echo "Synced files:" >&2
+            ls -la data/town_shp >&2 || true
+            exit 1
+          fi
 
       - name: Build county shapefile from town shapefile
         run: |
