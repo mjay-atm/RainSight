@@ -167,19 +167,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p data/town_shp
+          TGOS_TOWN_ZIP_URL="https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
+          curl -fL --connect-timeout 20 --max-time 180 \
+            "${TGOS_TOWN_ZIP_URL}" -o data/town_shp/tgos_town_boundary.zip
+
           python - << 'PY'
           import shutil
-          import urllib.request
           import zipfile
           from pathlib import Path
 
-          url = "https://www.tgos.tw/tgos/VirtualDir/Product/3fe61d4a-ca23-4f45-8aca-4a536f40f290/%E9%84%89%28%E9%8E%AE%E3%80%81%E5%B8%82%E3%80%81%E5%8D%80%29%E7%95%8C%E7%B7%9A1140318.zip"
           base_dir = Path("data/town_shp")
           zip_path = base_dir / "tgos_town_boundary.zip"
           expected_shp = base_dir / "TOWN_MOI_1140318.shp"
-
-          print(f"Downloading: {url}")
-          urllib.request.urlretrieve(url, zip_path)
 
           with zipfile.ZipFile(zip_path) as zf:
             zf.extractall(base_dir)
