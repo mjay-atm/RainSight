@@ -97,7 +97,7 @@ jobs:
             User ${{ secrets.JMP_USER }}
             IdentityFile ~/.ssh/id_jump_ed25519
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
 
           Host nas-via-bastion
             HostName ${{ secrets.NAS_HOST }}
@@ -105,11 +105,8 @@ jobs:
             ProxyJump bastion
             IdentityFile ~/.ssh/id_nas_ed25519
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
           EOF
-
-          ssh-keyscan -H "${{ secrets.JMP_HOST }}" >> ~/.ssh/known_hosts
-          ssh-keyscan -H "${{ secrets.NAS_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Build NAS timestamp folder name
         id: nas_folder
@@ -217,7 +214,7 @@ jobs:
             User ${{ secrets.JMP_USER }}
             IdentityFile ~/.ssh/id_jump_ed25519
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
 
           Host nas-via-bastion
             HostName ${{ secrets.NAS_HOST }}
@@ -225,19 +222,15 @@ jobs:
             ProxyJump bastion
             IdentityFile ~/.ssh/id_nas_ed25519
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
 
           Host web-direct
             HostName ${{ secrets.WEB_HOST }}
             User ${{ secrets.WEB_USER }}
             IdentityFile ~/.ssh/id_web_ed25519
             IdentitiesOnly yes
-            StrictHostKeyChecking yes
+            StrictHostKeyChecking accept-new
           EOF
-
-          ssh-keyscan -H "${{ secrets.JMP_HOST }}" >> ~/.ssh/known_hosts
-          ssh-keyscan -H "${{ secrets.NAS_HOST }}" >> ~/.ssh/known_hosts
-          ssh-keyscan -H "${{ secrets.WEB_HOST }}" >> ~/.ssh/known_hosts
 
       - name: Upload plot to NAS (via bastion)
         run: |
