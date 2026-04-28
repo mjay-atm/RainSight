@@ -58,11 +58,11 @@ jobs:
           fi
 
           curl -fsSL -X GET --connect-timeout 20 --max-time 120 \
-            -H "Authorization: Bearer ${token}" \
+            -H "Authorization: Basic ${token}" \
             "${NCDR_CSV_URL}" -o ncdr_rain_G01.csv
 
           curl -fsSL -X GET --connect-timeout 20 --max-time 120 \
-            -H "Authorization: Bearer ${token}" \
+            -H "Authorization: Basic ${token}" \
             "${NCDR_JSON_URL}" -o ncdr_rain_G01.json
 
           if [[ ! -s ncdr_rain_G01.csv ]]; then
