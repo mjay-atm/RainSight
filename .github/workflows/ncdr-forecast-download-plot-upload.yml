@@ -121,7 +121,7 @@ jobs:
           set -euo pipefail
           target_path="${{ secrets.NAS_TARGET_PATH }}/${{ steps.nas_folder.outputs.subdir }}"
           ssh nas-via-bastion "mkdir -p '${target_path}'"
-          rsync -az --mkpath \
+          rsync -az \
             ncdr_rain_G01.csv \
             ncdr_rain_G01.json \
             "nas-via-bastion:${target_path}/"
@@ -237,7 +237,7 @@ jobs:
           set -euo pipefail
           target_path="${{ secrets.NAS_TARGET_PATH }}/${{ needs.fetch-and-upload-raw.outputs.nas_subdir }}"
           ssh nas-via-bastion "mkdir -p '${target_path}'"
-          rsync -az --mkpath \
+          rsync -az \
             "${PLOT_PNG}" \
             "nas-via-bastion:${target_path}/"
 
@@ -245,6 +245,6 @@ jobs:
         run: |
           set -euo pipefail
           ssh web-direct "mkdir -p '${{ secrets.WEB_PLOT_PATH }}'"
-          rsync -az --mkpath \
+          rsync -az \
             "${PLOT_PNG}" \
             "web-direct:${{ secrets.WEB_PLOT_PATH }}/"
