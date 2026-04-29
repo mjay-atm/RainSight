@@ -23,6 +23,7 @@ concurrency:
 #   NAS_HOST                   - NAS SSH host/IP (需由跳板連入)
 #   NAS_USER                   - NAS SSH 使用者
 #   NAS_TARGET_PATH            - NAS 上目標目錄（預報資料與圖檔共用）
+#   NAS_GEO_PATH               - NAS 上地理資料根目錄（內含 TW_CITY/ 與 TW_TOWN/）
 #
 #   WEB_HOST                   - 網頁伺服器 host/IP (可由 GitHub runner 直連)
 #   WEB_USER                   - 網頁伺服器 SSH 使用者
@@ -163,7 +164,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt "fiona==1.9.6"
 
-      - name: Setup SSH config (bastion + NAS for town shapefile sync)
+      - name: Setup SSH config (bastion + NAS for shapefile sync)
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
@@ -189,35 +190,30 @@ jobs:
             StrictHostKeyChecking accept-new
           EOF
 
-      - name: Sync town shapefile folder from NAS
+      - name: Sync county/town shapefile folders from NAS_GEO_PATH
         run: |
           set -euo pipefail
-          mkdir -p data/town_shp
-          rsync -az \
-            "nas-via-bastion:${{ secrets.NAS_TARGET_PATH }}/town_shp/" \
-            "data/town_shp/"
+          mkdir -p data/geo/TW_CITY data/geo/TW_TOWN
 
-          if [[ ! -f data/town_shp/TOWN_MOI_1140318.shp ]]; then
-            echo "Missing expected shapefile: data/town_shp/TOWN_MOI_1140318.shp" >&2
-            echo "Synced files:" >&2
-            ls -la data/town_shp >&2 || true
+          rsync -az \
+            "nas-via-bastion:${{ secrets.NAS_GEO_PATH }}/TW_CITY/" \
+            "data/geo/TW_CITY/"
+
+          rsync -az \
+            "nas-via-bastion:${{ secrets.NAS_GEO_PATH }}/TW_TOWN/" \
+            "data/geo/TW_TOWN/"
+
+          county_count=$(find data/geo/TW_CITY -maxdepth 1 -type f -name '*.shp' | wc -l)
+          town_count=$(find data/geo/TW_TOWN -maxdepth 1 -type f -name '*.shp' | wc -l)
+
+          if [[ "${county_count}" -lt 1 || "${town_count}" -lt 1 ]]; then
+            echo "Expected at least one .shp file in both TW_CITY and TW_TOWN" >&2
+            echo "TW_CITY files:" >&2
+            ls -la data/geo/TW_CITY >&2 || true
+            echo "TW_TOWN files:" >&2
+            ls -la data/geo/TW_TOWN >&2 || true
             exit 1
           fi
-
-      - name: Build county shapefile from town shapefile
-        run: |
-          set -euo pipefail
-          python - << 'PY'
-          import geopandas as gpd
-
-          town_shp = "data/town_shp/TOWN_MOI_1140318.shp"
-          out_shp = "data/county_from_town.shp"
-
-          gdf = gpd.read_file(town_shp, encoding="utf-8")
-          county = gdf.dissolve(by="COUNTYNAME", as_index=False)
-          county.to_file(out_shp, encoding="utf-8")
-          print(f"generated: {out_shp}")
-          PY
 
       - name: Plot latest 3-day daily rainfall forecast
         run: |
@@ -225,9 +221,7 @@ jobs:
           python plot_ncdr_in3days.py \
             --csv ncdr_rain_G01.csv \
             --json ncdr_rain_G01.json \
-            --mode daily \
-            --county-shp data/county_from_town.shp \
-            --town-shp data/town_shp/TOWN_MOI_1140318.shp
+            --mode daily
 
           png_file=$(ls -t taoyuan_3days_daily_*.png | head -n1)
           if [[ -z "${png_file}" ]]; then

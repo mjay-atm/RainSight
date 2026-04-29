@@ -25,9 +25,29 @@ def parse_args():
     parser.add_argument("--json", default="ncdr_rain_G01.json", help="NCDR JSON（含 RecDateTime）")
     parser.add_argument("--start-date", default=None, help="起算日期（YYYY-MM-DD）")
     parser.add_argument("--mode", choices=["daily", "12hr"], default="daily", help="累積模式：daily=每日24hr(3張)、12hr=半天12hr(6張)")
-    parser.add_argument("--county-shp", default="/mnt/d/TW_GEOG/TW_CITY/COUNTY_MOI_1090820.shp", help="縣市界 SHP")
-    parser.add_argument("--town-shp", default="/mnt/d/TW_GEOG/TW_TOWN/TOWN_MOI_1120317.shp", help="鄉鎮界 SHP")
+    parser.add_argument("--county-shp", default="data/geo/TW_CITY", help="縣市界 SHP 檔案或資料夾")
+    parser.add_argument("--town-shp", default="data/geo/TW_TOWN", help="鄉鎮界 SHP 檔案或資料夾")
     return parser.parse_args()
+
+
+def resolve_shp_path(path_value, label, preferred_prefix):
+    path = Path(path_value)
+    if path.is_file():
+        return str(path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"{label} 路徑不存在: {path}")
+
+    if not path.is_dir():
+        raise ValueError(f"{label} 不是可用的檔案或資料夾: {path}")
+
+    shp_candidates = sorted(path.glob("*.shp"))
+    if not shp_candidates:
+        raise FileNotFoundError(f"{label} 資料夾內找不到 .shp 檔案: {path}")
+
+    preferred = [p for p in shp_candidates if p.name.upper().startswith(preferred_prefix)]
+    selected = preferred[0] if preferred else shp_candidates[0]
+    return str(selected)
 
 
 def get_discrete_cmap_norm():
@@ -232,6 +252,8 @@ def build_output_png_name(rec_dt_utc, panel_labels, mode):
 
 def main():
     args = parse_args()
+    county_shp_path = resolve_shp_path(args.county_shp, "county-shp", "COUNTY_MOI")
+    town_shp_path = resolve_shp_path(args.town_shp, "town-shp", "TOWN_MOI")
 
     rain_df = pd.read_csv(args.csv)
     hour_cols = collect_hour_columns(rain_df)
@@ -278,8 +300,8 @@ def main():
 
     print(f"Panels={len(panel_labels)} | HourRange={panel_labels[0][2]}-{panel_labels[-1][3]}")
 
-    tw_bdy = read_shp(args.county_shp, encoding="utf-8")
-    tw_twn = read_shp(args.town_shp, encoding="utf-8")
+    tw_bdy = read_shp(county_shp_path, encoding="utf-8")
+    tw_twn = read_shp(town_shp_path, encoding="utf-8")
 
     if args.mode == "12hr":
         fig, axes = plt.subplots(1, 6, figsize=(20, 3.8), constrained_layout=True, sharey=True)
